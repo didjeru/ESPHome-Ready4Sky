@@ -10,6 +10,7 @@ from esphome.components import(
 )
 from esphome.const import (
   CONF_ACCURACY_DECIMALS,
+  CONF_BEEPER,
   CONF_DEFAULT_TRANSITION_LENGTH,
   CONF_ENERGY,
   CONF_ENTITY_CATEGORY,
@@ -51,8 +52,7 @@ SkyKettle = skykettle_ns.class_("SkyKettle", cg.Component, ready4sky.R4SDriver)
 
 SkyKettlePowerSwitch = skykettle_ns.class_("SkyKettlePowerSwitch", switch.Switch)
 SkyKettleBackgroundSwitch = skykettle_ns.class_("SkyKettleBackgroundSwitch", switch.Switch)
-SkyKettleLockSwitch = skykettle_ns.class_("SkyKettleLockSwitch", switch.Switch)
-#SkyKettleBeepSwitch = skykettle_ns.class_("SkyKettleBeepSwitch", switch.Switch)
+SkyKettleBeeperSwitch = skykettle_ns.class_("SkyKettleBeeperSwitch", switch.Switch)
 
 SkyKettleTargetNumber = skykettle_ns.class_("SkyKettleTargetNumber", number.Number)
 SkyKettleBoilTimeAdjNumber = skykettle_ns.class_("SkyKettleBoilTimeAdjNumber", number.Number)
@@ -194,6 +194,12 @@ CONFIG_SCHEMA = (
                 cv.Optional(CONF_ICON, default="mdi:led-variant-on"): switch.icon,
               }
             ),
+            cv.Optional(CONF_BEEPER): switch.SWITCH_SCHEMA.extend(
+              {
+                cv.GenerateID(): cv.declare_id(SkyKettleBeeperSwitch),
+                cv.Optional(CONF_ICON, default="mdi:volume-high"): switch.icon,
+              }
+            ),
             cv.Optional(CONF_TARGET_TEMP): number.NUMBER_SCHEMA.extend(
               {
                 cv.GenerateID(): cv.declare_id(SkyKettleTargetNumber),
@@ -277,6 +283,11 @@ async def to_code(config):
     swtch = cg.new_Pvariable(conf[CONF_ID], var)
     await switch.register_switch(swtch, conf)
     cg.add(var.set_state_led(swtch))
+  if CONF_BEEPER in params:
+    conf = params[CONF_BEEPER]
+    swtch = cg.new_Pvariable(conf[CONF_ID], var)
+    await switch.register_switch(swtch, conf)
+    cg.add(var.set_beeper(swtch))
   if CONF_TARGET_TEMP in params:
     numb = await number.new_number(params[CONF_TARGET_TEMP], min_value=35.0, max_value=100.0, step=5.0)
     cg.add(numb.set_parent(var))
